@@ -1,0 +1,102 @@
+#include <iostream>
+#include <string>
+#include <climits>
+using namespace std;
+
+#define MAX 100
+
+// Node structure for Huffman Tree
+struct Node {
+    char ch;
+    int freq;
+    Node *left, *right;
+};
+
+// Create a new node
+Node* createNode(char ch, int freq, Node* left = nullptr, Node* right = nullptr) {
+    Node* node = new Node;
+    node->ch = ch;
+    node->freq = freq;
+    node->left = left;
+    node->right = right;
+    return node;
+}
+
+// Find the two nodes with the smallest frequencies
+void findTwoSmallest(Node* nodes[], int n, int &min1, int &min2) {
+    min1 = min2 = -1;
+
+    for (int i = 0; i < n; i++) {
+        if (nodes[i] != nullptr) {
+            if (min1 == -1 || nodes[i]->freq < nodes[min1]->freq) {
+                min2 = min1;
+                min1 = i;
+            } else if (min2 == -1 || nodes[i]->freq < nodes[min2]->freq) {
+                min2 = i;
+            }
+        }
+    }
+}
+
+// Print Huffman codes
+void printCodes(Node* root, string code) {
+    if (!root) return;
+
+    // If it's a leaf node, print the character and its code
+    if (!root->left && !root->right) {
+        cout << root->ch << ": " << code << endl;
+        return;
+    }
+
+    printCodes(root->left, code + "0");
+    printCodes(root->right, code + "1");
+}
+
+// Huffman Coding algorithm
+void huffmanCoding(char characters[], int frequencies[], int n) {
+    Node* nodes[MAX];
+    
+    // Initialize nodes for each character
+    for (int i = 0; i < n; i++) {
+        nodes[i] = createNode(characters[i], frequencies[i]);
+    }
+
+    // Build the Huffman Tree
+    while (true) {
+        int min1, min2;
+        findTwoSmallest(nodes, n, min1, min2);
+
+        if (min2 == -1) break; // Only one node left
+
+        // Merge the two smallest nodes
+        Node* merged = createNode('$', nodes[min1]->freq + nodes[min2]->freq, nodes[min1], nodes[min2]);
+
+        nodes[min1] = merged;
+        nodes[min2] = nullptr; // Mark the second node as used
+    }
+
+    // The remaining node is the root of the Huffman Tree
+    Node* root = nullptr;
+    for (int i = 0; i < n; i++) {
+        if (nodes[i] != nullptr) {
+            root = nodes[i];
+            break;
+        }
+    }
+
+    // Print Huffman Codes
+    cout << "Huffman Codes:\n";
+    printCodes(root, "");
+}
+
+int main() {
+    // Characters and their frequencies
+    char characters[] = {'A', 'B', 'C', 'D', 'E', 'F'};
+    int frequencies[] = {5, 9, 12, 13, 16, 45};
+    int n = sizeof(characters) / sizeof(characters[0]);
+
+    // Call Huffman Coding
+    huffmanCoding(characters, frequencies, n);
+
+    return 0;
+}
